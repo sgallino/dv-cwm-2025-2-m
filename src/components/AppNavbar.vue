@@ -5,29 +5,39 @@ export default {
 </script>
 
 <template>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">DV Social</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Mostrar / ocultar menú de navegación">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <RouterLink class="nav-link" to="/">Home</RouterLink>
-                    </li>
-                    <li class="nav-item">
-                        <RouterLink class="nav-link" to="/chat">Chat</RouterLink>
-                    </li>
-                    <li class="nav-item">
-                        <RouterLink class="nav-link" to="/ingresar">Ingresar</RouterLink>
-                    </li>
-                    <li class="nav-item">
-                        <RouterLink class="nav-link" to="/crear-cuenta">Crear cuenta</RouterLink>
-                    </li>
-                </ul>
-            </div>
-        </div>
+    <!-- 
+    # Formato de las clases de Tailwind
+    En Tailwind los nombres de las clases tienen típicamente uno de dos formatos:
+    1. <estilo>-<valor>
+        El nombre se compone de estas dos partes para indicar lo que queremos agregar.
+        Por ejemplo:
+            .p-4                    padding: 1rem;
+            .text-white             color: #fff;
+            .bg-slate-200           background-color: #e2e8f0;
+    
+    2. <valor>
+        En algunas clases donde los valores del estilo son lo suficientemente
+        únicos, Tailwind usa solo el valor como el nombre.
+        Por ejemplo:
+            .flex                   display: flex;
+            .underline              text-decoration: underline;
+    -->
+    <nav class="flex items-center gap-8 p-4 bg-slate-200">
+        <RouterLink class="text-xl" to="/">DV Social</RouterLink>
+        
+        <ul class="flex gap-4">
+            <li>
+                <RouterLink to="/">Home</RouterLink>
+            </li>
+            <li>
+                <RouterLink to="/chat">Chat</RouterLink>
+            </li>
+            <li>
+                <RouterLink to="/ingresar">Ingresar</RouterLink>
+            </li>
+            <li>
+                <RouterLink to="/crear-cuenta">Crear cuenta</RouterLink>
+            </li>
+        </ul>
     </nav>
 </template>

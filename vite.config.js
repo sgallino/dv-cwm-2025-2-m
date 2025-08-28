@@ -12,10 +12,11 @@
 // necesitan instalarse en los entornos de desarrollo o testing. Pero no son
 // necesarias en los entornos de producción.
 import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite';
 
 export default {
     // La propiedad "plugins" recibe un array con los plugins que queremos
     // sumar a Vite. Generalmente, cada plugin se obtiene ejecutando una
     // función.
-    plugins: [vue()],
+    plugins: [vue(), tailwindcss()],
 }

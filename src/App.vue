@@ -12,7 +12,7 @@ export default {
 
 <template>
     <AppNavbar />
-    <main class="container py-3">
+    <main class="container p-4 mx-auto">
         <!-- 
         RouterView es un componente de Vue Router. Se registra globalmente
         cuando agregamos el "app.use(router)" en [main.js].

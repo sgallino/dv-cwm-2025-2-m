@@ -1,13 +1,35 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DV Social</title>
   </head>
-  <body>
-    <div id="app"></div>
+  <body class="h-full">
+    <!-- 
+    # Usando valores arbitrarios en Tailwind
+    Si bien Tailwind contempla una inmensa gama de valores genéricos,
+    ocasionalmente vamos a necesitar usar valores que son específicos
+    de nuestra aplicación.
+    Por ejemplo, las filas de la grilla:
+        grid-template-rows: 60px 1fr 100px;
+    
+    Para poder usar estos estilos desde las propias clases de Tailwind,
+    podemos usar los corchetes [] para contener el valor arbitrario 
+    del estilo que queremos.
+    Por ejemplo:
+        .p-[25px]               padding: 25px;
+        .w-[calc(100%-2rem)]    width: calc(100% - 2rem);
+
+    Importante: Los espacios en el atributo class separan una clase
+    de otra. Si un valor tiene espacios, tenemos que reemplazarlos
+    con "_".
+    Por ejemplo:
+        .grid-rows-[60px_1fr_100px]       grid-template-rows: 60px 1fr 100px;
+        .grid-rows-[60px 1fr 100px]       No funciona :(
+    -->
+    <div id="app" class="grid grid-rows-[60px_1fr_100px] h-full"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
