@@ -28,19 +28,31 @@ export default {
         }
     },
     methods: {
-        handleSubmit() {
-            this.messages.push({
-                id: this.messages.length,
-                email: this.newMessage.email,
-                content: this.newMessage.content,
-                created_at: new Date(),
-            });
+        async handleSubmit() {
+            // this.messages.push({
+            //     id: this.messages.length,
+            //     email: this.newMessage.email,
+            //     content: this.newMessage.content,
+            //     created_at: new Date(),
+            // });
+            // Insertamos el nuevo mensaje en Supabase.
+            const { data, error } = await supabase
+                .from('global_chat_messages')
+                .insert({
+                    email: this.newMessage.email,
+                    content: this.newMessage.content,
+                });
+            
+            if(error) {
+                console.error('[GlobalChat handleSubmit] Error al insertar el mensaje.', error);
+                return;
+            }
 
             this.newMessage.content = '';
         }
     },
     async mounted() {
-        // TODO: Repasar :D
+        // TODO: Mover estas funcionalidades a un servicio. Arrancar con la autenticación.
         // Traemos las filas de la tabla global_chat_messages de Supabase.
         // El objeto de Supabase tiene múltiples métodos para interactuar con los servicios.
         // Noten, muy importante, el await.
@@ -52,10 +64,44 @@ export default {
             .select();
 
         if(error) {
-            throw new Error(error);
+            console.error('[GlobalChat] Error al traer los mensajes de chat.', error);
+            return;
+            // throw new Error(error);
         }
 
         this.messages = data;
+
+        // Actualización en tiempo real de los nuevos mensajes.
+        // Vamos a usar la API de Postgres Changes que Supabase Realtime ofrece.
+        // Primero, creamos el canal.
+        // Lo importante es el nombre del canal, que sería su id. Pueden poner cualquier
+        // string excepto "realtime".
+        const chatChannel = supabase.channel('global_chat_messages');
+
+        // Configuramos los eventos que queremos escuchar.
+        // Los eventos se registran con el método "on".
+        // Este método recibe 3 argumentos:
+        // 1. String. El servicio de Supabase Realtime que queremos usar.
+        // 2. Objeto. Los detalles del evento que queresmo escuchar.
+        // 3. Function. El callback a ejecutar a ejecutar. Va a recibir comom parámetro el "payload"
+        //  del evento.
+        chatChannel.on(
+            'postgres_changes',
+            {
+                // Para Postgres Changes puede ser el evento: INSERT, UPDATE, DELETE, *.
+                event: 'INSERT',
+                table: 'global_chat_messages',
+                schema: 'public',
+            },
+            payload => {
+                // console.log('Recibimos un nuevo mensaje: ', payload);
+                this.messages.push(payload.new);
+            }
+        );
+
+        // Pedimos "suscribirnos" al canal. Hasta acá, configuramos el canal, pero es recién
+        // cuando nos suscribimos que empezamos a recibir la data.
+        chatChannel.subscribe();
     }
 }
 </script>
