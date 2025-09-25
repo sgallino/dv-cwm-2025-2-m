@@ -1,6 +1,6 @@
 <script>
 import AppH1 from '../components/AppH1.vue';
-import { supabase } from '../services/supabase';
+import { fetchLastGlobalChatMessages, sendNewGlobalChatMessage, subscribeToNewGlobalChatMessages } from '../services/global-chat';
 
 export default {
     name: 'GlobalChat',
@@ -29,79 +29,63 @@ export default {
     },
     methods: {
         async handleSubmit() {
-            // this.messages.push({
-            //     id: this.messages.length,
-            //     email: this.newMessage.email,
-            //     content: this.newMessage.content,
-            //     created_at: new Date(),
-            // });
-            // Insertamos el nuevo mensaje en Supabase.
-            const { data, error } = await supabase
-                .from('global_chat_messages')
-                .insert({
+            try {
+                await sendNewGlobalChatMessage({
                     email: this.newMessage.email,
                     content: this.newMessage.content,
                 });
-            
-            if(error) {
-                console.error('[GlobalChat handleSubmit] Error al insertar el mensaje.', error);
-                return;
+                
+                this.newMessage.content = '';
+            } catch (error) {
+                // TODO:
             }
-
-            this.newMessage.content = '';
         }
     },
     async mounted() {
-        // TODO: Mover estas funcionalidades a un servicio. Arrancar con la autenticación.
-        // Traemos las filas de la tabla global_chat_messages de Supabase.
-        // El objeto de Supabase tiene múltiples métodos para interactuar con los servicios.
-        // Noten, muy importante, el await.
-        // Podemos considerar que es el "await" el que hace que el query se ejecute.
-        const { data, error } = await supabase
-            // .from() permite interactuar con alguna tabla de nuestro backend.
-            .from('global_chat_messages')
-            // .select() hace un select de los datos de la tabla.
-            .select();
+        try {
+            subscribeToNewGlobalChatMessages(async receivedMessage => {
+                this.messages.push(receivedMessage);
 
-        if(error) {
-            console.error('[GlobalChat] Error al traer los mensajes de chat.', error);
-            return;
-            // throw new Error(error);
+                await this.$nextTick();
+                
+                this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
+            });
+
+            this.messages = await fetchLastGlobalChatMessages();
+
+            /*
+            # nextTick()
+            Una de las tareas más demandantes para un browser es hacer un "repaint".
+            "Repaint" es como llamamos al proceso de actualizar la pantalla de la página según cambios en el
+            DOM o en el CSS.
+
+            Para evitar hacer "repaints" innecesarios, Vue no actualiza el DOM tan pronto detecta un cambio.
+            Sino que espera un poquito a ver si no ocurren más cambios que sean necesarios aplicar.
+            De esta forma, Vue puede agrupar (hacer un "batch") múltiples cambios en una sola acción, resumiéndolo
+            en un solo "repaint".
+
+            Esto es mucho más eficiente, y hace la interfaz mucho más fluida.
+            En la mayoría de los casos, esto es transparente.
+
+            Pero hay ocasiones, como esta, donde necesitamos sincronizar acciones a cambios en el DOM.
+            Por ejemplo, para poder mover el scroll del contenedor de chat, necesitamos esperar a que los mensajes
+            se agreguen en el DOM.
+
+            La función nextTick() de Vue retorna una Promise que se resuleve cuando Vue actualiza el DOM.
+            Se usa para poder sincronizar código a la actualización del DOM o CSS.
+            */
+            await this.$nextTick();
+
+            /*
+            # Usando los template refs
+            Vue en la Options API incluye una propiedad $refs a this que contiene todas las referencias.
+            */
+            // console.log(this.$refs.chatContainer);
+            this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
+           
+        } catch (error) {
+            // TODO...
         }
-
-        this.messages = data;
-
-        // Actualización en tiempo real de los nuevos mensajes.
-        // Vamos a usar la API de Postgres Changes que Supabase Realtime ofrece.
-        // Primero, creamos el canal.
-        // Lo importante es el nombre del canal, que sería su id. Pueden poner cualquier
-        // string excepto "realtime".
-        const chatChannel = supabase.channel('global_chat_messages');
-
-        // Configuramos los eventos que queremos escuchar.
-        // Los eventos se registran con el método "on".
-        // Este método recibe 3 argumentos:
-        // 1. String. El servicio de Supabase Realtime que queremos usar.
-        // 2. Objeto. Los detalles del evento que queresmo escuchar.
-        // 3. Function. El callback a ejecutar a ejecutar. Va a recibir comom parámetro el "payload"
-        //  del evento.
-        chatChannel.on(
-            'postgres_changes',
-            {
-                // Para Postgres Changes puede ser el evento: INSERT, UPDATE, DELETE, *.
-                event: 'INSERT',
-                table: 'global_chat_messages',
-                schema: 'public',
-            },
-            payload => {
-                // console.log('Recibimos un nuevo mensaje: ', payload);
-                this.messages.push(payload.new);
-            }
-        );
-
-        // Pedimos "suscribirnos" al canal. Hasta acá, configuramos el canal, pero es recién
-        // cuando nos suscribimos que empezamos a recibir la data.
-        chatChannel.subscribe();
     }
 }
 </script>
@@ -110,7 +94,13 @@ export default {
     <AppH1>Chat general</AppH1>
 
     <div class="flex gap-4">
-        <section class="overflow-y-auto w-9/12 h-100 p-4 border border-gray-200 rounded">
+        <!-- 
+        # Template refs
+        Un template refs es el mecanismo de Vue par brindarnos el elemento del DOM de alguna etiqueta del
+        <template>.
+        Para usarlos, necesitamos agregar en la etiqueta en cuestión un atributo "ref" con un identificador.
+        -->
+        <section ref="chatContainer" class="overflow-y-auto w-9/12 h-100 p-4 border border-gray-200 rounded">
             <h2 class="sr-only">Lista de mensajes</h2>
             <!-- 
             Los atributos que empiezan con "v-" son directivas, que son funciones
