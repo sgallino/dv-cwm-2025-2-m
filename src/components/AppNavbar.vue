@@ -1,6 +1,30 @@
 <script>
+import { logout, subscribeToAuthStateChanges } from '../services/auth';
+
 export default {
     name: 'AppNavbar',
+    data() {
+        return {
+            user: {
+                id: null,
+                email: null,
+            },
+        }
+    },
+    methods: {
+        handleSubmit() {
+            logout();
+
+            // Redireccionamos al login.
+            // Esto lo hacemos con el método push() del Router.
+            // Al Router lo podemos acceder desde la propiedad especial $router.
+            this.$router.push('/ingresar');
+        },
+    },
+    mounted() {
+        // Nos suscribimos para recibir los datos del usuario autenticado.
+        subscribeToAuthStateChanges(userState => this.user = userState);
+    },
 }
 </script>
 
@@ -29,15 +53,30 @@ export default {
             <li>
                 <RouterLink to="/">Home</RouterLink>
             </li>
-            <li>
-                <RouterLink to="/chat">Chat</RouterLink>
-            </li>
-            <li>
-                <RouterLink to="/ingresar">Ingresar</RouterLink>
-            </li>
-            <li>
-                <RouterLink to="/crear-cuenta">Crear cuenta</RouterLink>
-            </li>
+            <template v-if="user.id !== null">
+                <li>
+                    <RouterLink to="/chat">Chat</RouterLink>
+                </li>
+                <li>
+                    <RouterLink to="/mi-perfil">Mi perfil</RouterLink>
+                </li>
+                <li>
+                    <form 
+                        action="#"
+                        @submit.prevent="handleSubmit"
+                    >
+                        <button type="submit">{{ user.email }} (Cerrar sesión)</button>
+                    </form>
+                </li>
+            </template>
+            <template v-else>
+                <li>
+                    <RouterLink to="/ingresar">Ingresar</RouterLink>
+                </li>
+                <li>
+                    <RouterLink to="/crear-cuenta">Crear cuenta</RouterLink>
+                </li>
+            </template>
         </ul>
     </nav>
 </template>

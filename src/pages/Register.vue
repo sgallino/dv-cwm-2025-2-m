@@ -25,6 +25,8 @@ export default {
                 this.loading = true;
                 
                 await register(this.user.email, this.user.password);
+
+                this.$router.push('/mi-perfil');
             } catch (error) {
                 this.feedback.message = error;
             }
