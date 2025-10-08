@@ -1,6 +1,9 @@
 <script>
 import AppH1 from '../components/AppH1.vue';
+import { subscribeToAuthStateChanges } from '../services/auth';
 import { fetchLastGlobalChatMessages, sendNewGlobalChatMessage, subscribeToNewGlobalChatMessages } from '../services/global-chat';
+
+let unsubscribeFromChat = () => {} // El valor es un placeholder.
 
 export default {
     name: 'GlobalChat',
@@ -22,8 +25,15 @@ export default {
         return {
             messages: [],
             newMessage: {
-                email: '',
                 content: '',
+            },
+
+            user: {
+                id: null,
+                email: null,
+                display_name: null,
+                bio: null,
+                career: null,
             },
         }
     },
@@ -31,7 +41,8 @@ export default {
         async handleSubmit() {
             try {
                 await sendNewGlobalChatMessage({
-                    email: this.newMessage.email,
+                    sender_id: this.user.id,
+                    email: this.user.email,
                     content: this.newMessage.content,
                 });
                 
@@ -42,8 +53,11 @@ export default {
         }
     },
     async mounted() {
+        subscribeToAuthStateChanges(userState => this.user = userState);
+
         try {
-            subscribeToNewGlobalChatMessages(async receivedMessage => {
+            // Guardamos la función para desuscribirnos.
+            unsubscribeFromChat = subscribeToNewGlobalChatMessages(async receivedMessage => {
                 this.messages.push(receivedMessage);
 
                 await this.$nextTick();
@@ -86,6 +100,11 @@ export default {
         } catch (error) {
             // TODO...
         }
+    },
+    unmounted() {
+        // El unmounted es el lugar ideal para limpiar todo lo que hayamos hecho en el componente. Por
+        // ejemplo, limpiar las suscripciones.
+        unsubscribeFromChat(); // Llamamos a la función que guardamos para desuscribirnos.
     }
 }
 </script>
@@ -126,7 +145,11 @@ export default {
                 @submit.prevent="handleSubmit"
             >
                 <div class="mb-4">
-                    <label for="email" class="block mb-2">Email</label>
+                    <span class="block mb-2">Email</span>
+                    {{ user.email }}
+                </div>
+                <div class="mb-4">
+                    <label for="content" class="block mb-2">Mensaje</label>
                     <!-- 
                     v-model define un "two-way data binding".
                     Esto signfica que Vue mantiene en sincronía el valor del state con el valor del
@@ -137,15 +160,6 @@ export default {
                     Internamente, Vue maneja el valor del state como la "único origen de verdad"
                     (single source of truth).
                     -->
-                    <input
-                        type="email"
-                        id="email"
-                        class="w-full p-2 border border-gray-300 rounded"
-                        v-model="newMessage.email"
-                    >
-                </div>
-                <div class="mb-4">
-                    <label for="content" class="block mb-2">Mensaje</label>
                     <textarea
                         id="content"
                         class="w-full p-2 border border-gray-300 rounded"

@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { createUserProfile, fetchUserProfileById, updateUserProfile } from "./user-profiles";
 
 const ERROR_MESSAGES_MAP = {
     'weak_password': 'La contraseña debe tener al menos 6 caracteres.',
@@ -48,10 +49,41 @@ Para implementar Observer hay que cumplir con algunos requisitos:
 let user = {
     id: null,
     email: null,
+    display_name: null,
+    bio: null,
+    career: null,
 }
 let observers = [];
 
-// TODO: Levantar automáticamente los datos del usuario autenticado.
+loadCurrentAuthUserData();
+
+async function loadCurrentAuthUserData() {
+    // Tratamos de obtener los datos del usuario actualmente autenticado.
+    // Si existen, marcamos a nuestro usuario como autenticado y notificamos a los observers.
+    const { data, error } = await supabase.auth.getUser();
+
+    if(error) {
+        console.warn('No hay un usuario autenticado.');
+        return;
+    }
+
+    setUserState({
+        id: data.user.id,
+        email: data.user.email,
+    });
+
+    loadAuthUserProfile();
+}
+
+async function loadAuthUserProfile() {
+    try {
+        // const profile = await fetchUserProfileById(user.id);
+        // setUserState(profile);
+        setUserState(await fetchUserProfileById(user.id));
+    } catch (error) {
+        // TODO...
+    }
+}
 
 /**
  * 
@@ -59,28 +91,39 @@ let observers = [];
  * @param {String} password 
  */
 export async function register(email, password) {
-    // Para trbajar con la autenticación de Supabase, podemos acceder a la propiedad auth del cliente de Supabase.
-    // Entre sus métodos, tenemos "signUp" que nos permite registrar un usuario.
-    // Recibe 1 parámetro:
-    // 1. Objeto. Los datos del usuario. Puede recibir algunas propiedades, como "email" y "password".
-    const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-    });
+    try {
+        // Para trbajar con la autenticación de Supabase, podemos acceder a la propiedad auth del cliente de Supabase.
+        // Entre sus métodos, tenemos "signUp" que nos permite registrar un usuario.
+        // Recibe 1 parámetro:
+        // 1. Objeto. Los datos del usuario. Puede recibir algunas propiedades, como "email" y "password".
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+        });
 
-    if(error) {
-        console.error('[auth.js register] Error al crear el nuevo usuario.', error);
-        throw new Error(ERROR_MESSAGES_MAP[error.code] ?? error.message);
-    }
+        if(error) {
+            console.error('[auth.js register] Error al crear el nuevo usuario.', error);
+            throw new Error(ERROR_MESSAGES_MAP[error.code] ?? error.message);
+        }
 
-    console.log('Nuevo usuario creado: ', data);
-    // Cada vez que cambie algo del estado de autenticación o la información relacionada al usuario
-    // vamos a actualizar el objeto user, y notificar a todos los observers.
-    user = {
-        id: data.user.id,
-        email: data.user.email,
+        // Una vez que el usuario se creó, creamos el perfil del usuario.
+        await createUserProfile({
+            id: data.user.id,
+            email: data.user.email,
+        });
+
+        // console.log('Nuevo usuario creado: ', data);
+        // Cada vez que cambie algo del estado de autenticación o la información relacionada al usuario
+        // vamos a actualizar el objeto user, y notificar a todos los observers.
+        setUserState({
+            id: data.user.id,
+            email: data.user.email,
+        });
+    } catch (error) {
+        throw new Error(error.message || error);
+        // Tratar un par de veces más de realizar la acción, esperando uno o dos segundos por medio.
+        // Alternativamente, si no es adecuado, simplemente arrojamos un error para que la interfaz lo maneje.
     }
-    notifyAll();
 }
 
 /**
@@ -100,21 +143,38 @@ export async function login(email, password) {
     }
 
     console.log('Sesión iniciada con éxito: ', data);
-    user = {
+    setUserState({
         id: data.user.id,
         email: data.user.email,
-    }
-    notifyAll();
+    });
+
+    loadAuthUserProfile();
 }
 
 export async function logout() {
     supabase.auth.signOut();
 
-    user = {
+    setUserState({
         id: null,
         email: null,
+        display_name: null,
+        bio: null,
+        career: null,
+    });
+}
+
+/**
+ * 
+ * @param {{display_name?: string|null, bio?: string|null, career?: string|null}} data 
+ */
+export async function updateAuthUserProfile(data) {
+    try {
+        await updateUserProfile(user.id, data);
+
+        setUserState(data);
+    } catch (error) {
+        throw new Error(error.message || error);
     }
-    notifyAll();
 }
 
 /*
@@ -128,6 +188,7 @@ export async function logout() {
  * El callback va a recibir una copia de los datos del usuario actual.
  * 
  * @param {Function} callback 
+ * @todo Unsubscribe
  */
 export function subscribeToAuthStateChanges(callback) {
     // Agregamos el observer al stack.
@@ -145,4 +206,12 @@ function notify(callback) {
 function notifyAll() {
     observers.forEach(callback => notify(callback));
     // observers.forEach(notify);
+}
+
+function setUserState(data) {
+    user = {
+        ...user,
+        ...data,
+    }
+    notifyAll();
 }
