@@ -6,6 +6,7 @@ import Login from "../pages/Login.vue";
 import Register from "../pages/Register.vue";
 import MyProfile from "../pages/MyProfile.vue";
 import MyProfileEdit from "../pages/MyProfileEdit.vue";
+import UserProfile from "../pages/UserProfile.vue";
 
 // Creamos el array de rutas para el router.
 // Cada ruta debe ser un objeto que contenga al menos 2 propiedades:
@@ -21,6 +22,7 @@ const routes = [
     { path: '/chat',                    component: GlobalChat,      meta: { requiresAuth: true, }, },
     { path: '/mi-perfil',               component: MyProfile,       meta: { requiresAuth: true, }, },
     { path: '/mi-perfil/editar',        component: MyProfileEdit,   meta: { requiresAuth: true, }, },
+    { path: '/usuario/:id',             component: UserProfile,     meta: { requiresAuth: true, }, },
 ];
 
 // El router se crea con createRouter que recibe un objeto de 2

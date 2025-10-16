@@ -2,6 +2,8 @@
 import AppH1 from '../components/AppH1.vue';
 import { subscribeToAuthStateChanges, updateAuthUserProfile } from '../services/auth';
 
+let unsubscribeFromAuth = () => {}
+
 export default {
     name: 'MyProfileEdit',
     components: { AppH1, },
@@ -28,13 +30,16 @@ export default {
         }
     },
     mounted() {
-        subscribeToAuthStateChanges(userState => {
+        unsubscribeFromAuth = subscribeToAuthStateChanges(userState => {
             this.formData = {
                 display_name: userState.display_name,
                 bio: userState.bio,
                 career: userState.career,
             }
         });
+    },
+    unmounted() {
+        unsubscribeFromAuth();
     }
 }
 </script>

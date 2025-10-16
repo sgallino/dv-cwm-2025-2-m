@@ -4,6 +4,7 @@ import { subscribeToAuthStateChanges } from '../services/auth';
 import { fetchLastGlobalChatMessages, sendNewGlobalChatMessage, subscribeToNewGlobalChatMessages } from '../services/global-chat';
 
 let unsubscribeFromChat = () => {} // El valor es un placeholder.
+let unsubscribeFromAuth = () => {}
 
 export default {
     name: 'GlobalChat',
@@ -53,7 +54,7 @@ export default {
         }
     },
     async mounted() {
-        subscribeToAuthStateChanges(userState => this.user = userState);
+        unsubscribeFromAuth = subscribeToAuthStateChanges(userState => this.user = userState);
 
         try {
             // Guardamos la función para desuscribirnos.
@@ -105,6 +106,7 @@ export default {
         // El unmounted es el lugar ideal para limpiar todo lo que hayamos hecho en el componente. Por
         // ejemplo, limpiar las suscripciones.
         unsubscribeFromChat(); // Llamamos a la función que guardamos para desuscribirnos.
+        unsubscribeFromAuth();
     }
 }
 </script>
@@ -132,7 +134,15 @@ export default {
                     :key="message.id"
                     class="p-4 rounded bg-gray-100"
                 >
-                    <div class="mb-1"><span class="font-bold">{{ message.email }}</span> dijo:</div>
+                    <div class="mb-1">
+                        <RouterLink 
+                            class="font-bold text-blue-700 underline"
+                            :to="`/usuario/${message.sender_id}`"
+                        >
+                            {{ message.email }}
+                        </RouterLink> 
+                        dijo:
+                    </div>
                     <div class="mb-1">{{ message.content }}</div>
                     <div class="text-sm text-gray-700">{{ message.created_at }}</div>
                 </li>

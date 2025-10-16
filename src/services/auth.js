@@ -188,7 +188,7 @@ export async function updateAuthUserProfile(data) {
  * El callback va a recibir una copia de los datos del usuario actual.
  * 
  * @param {Function} callback 
- * @todo Unsubscribe
+ * @returns {() => void}
  */
 export function subscribeToAuthStateChanges(callback) {
     // Agregamos el observer al stack.
@@ -196,7 +196,20 @@ export function subscribeToAuthStateChanges(callback) {
     // los datos actuales, lo notificamos a continuación.
     observers.push(callback);
 
+    // console.log("Observer agregado. El stack actual es: ", observers);
+
     notify(callback);
+
+    // Siempre que creamos algún mecanismo de "suscripción" es crítico que demos la posibilidad
+    // de "cancelar la suscripción".
+    // De no hacerlo, vamos a terminar generando una "memory leak" (filtración de memoria) y
+    // derroche de recursos de procesamiento.
+    // Hay distintas formas de ofrecer este mecanismo de desuscripción. La más simple en nuestro
+    // caso es retornar una función nueva que al ejecutarse cancele la suscripción.
+    return () => {
+        observers = observers.filter(obs => obs !== callback);
+        // console.log("Observer removido. El stack actual es: ", observers);
+    }
 }
 
 function notify(callback) {

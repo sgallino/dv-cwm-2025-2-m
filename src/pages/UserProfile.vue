@@ -1,11 +1,9 @@
 <script>
 import AppH1 from '../components/AppH1.vue';
-import { subscribeToAuthStateChanges } from '../services/auth';
-
-let unsubscribeFromAuth = () => {} // La función es un placeholder.
+import { fetchUserProfileById } from '../services/user-profiles';
 
 export default {
-    name: 'MyProfile',
+    name: 'UserProfile',
     components: { AppH1, },
     data() {
         return {
@@ -16,24 +14,27 @@ export default {
                 bio: null,
                 career: null,
             },
+            loading: false,
         }
     },
-    mounted() {
-        // Capturamos la función para cancelar la suscripción.
-        unsubscribeFromAuth = subscribeToAuthStateChanges(userState => this.user = userState);
-    },
-    unmounted() {
-        // Invocamos la función y cancelamos la suscripción.
-        unsubscribeFromAuth();
+    async mounted() {
+        try {
+            this.loading = true;
+
+            // Para acceder a los datos de la ruta, tenemos el objeto this.$route.
+            // Entre sus datos, tenemos "params" que nos da acceso a los parámetros
+            // de ruta.
+            this.user = await fetchUserProfileById(this.$route.params.id);
+        } catch (error) {
+            // TODO...
+        }
+        this.loading = false;
     }
 }
 </script>
 
 <template>
-    <div class="flex gap-4 items-end">
-        <AppH1>Mi perfil</AppH1>
-        <RouterLink class="mb-4 text-blue-700 underline" to='/mi-perfil/editar'>Editar</RouterLink>
-    </div>
+    <AppH1>Perfil de {{ user.email }}</AppH1>
 
     <div class="ms-4 my-8 text-gray-800 italic">{{ user.bio ?? 'Sin especificar...' }}</div>
         
