@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-// TODO: RLS del chat privado. Empezar la migración de Vue a la Composition API.
+// TODO: Empezar la migración de Vue a la Composition API.
 
 // Armamos un simple sistemita de caché, que dure hasta que el usuario refresque la página.
 // Vamos a guardar los chats privados que recibimos en un objeto.
@@ -174,7 +174,7 @@ export async function subscribeToNewPrivateChatMessages(senderId, receiverId, ca
             filter: 'chat_id=eq.' + privateChat.id,
         },
         payload => {
-            console.log("Hola");
+            // console.log("Hola");
             
             callback(payload.new);
         }
@@ -186,3 +186,53 @@ export async function subscribeToNewPrivateChatMessages(senderId, receiverId, ca
         privateChannel.unsubscribe();
     }
 }
+
+
+// ----------------------------------------------------------------------------------------------
+// async function testCantReadAPrivateChatIfImNotPartOfIt() {
+//     // Esta función la probamos estando autenticados como "otro@usuario.com".
+//     const saraEmail = '3997d715-e8ec-473e-ab3f-61da6c159776';
+//     const pepeEmail = '5361e153-75fb-4e64-972e-fda174df18a2';
+
+//     const { data, error } = await supabase
+//         .from('private_chats')
+//         .select()
+//         .eq('user_id1', saraEmail)
+//         .eq('user_id2', pepeEmail);
+
+//     if(error) {
+//         console.error('[Test] Error al correr el test.');
+//         throw new Error(error.message);
+//     }
+
+//     if(data.length > 0) {
+//         console.warn('❌ [Test] Pudimos leer una conversación de la no somos parte.');
+//     } else {
+//         console.log('✅ [Test] No pudimos leer una conversación de la no somos parte.');
+//     }
+// }
+
+// testCantReadAPrivateChatIfImNotPartOfIt();
+
+// async function testCantReadAPrivateChatMessagesIfImNotPartOfIt() {
+//     // Esta función la probamos estando autenticados como "otro@usuario.com".
+//     const chatId = 5;
+
+//     const { data, error } = await supabase
+//         .from('private_chat_messages')
+//         .select()
+//         .eq('chat_id', chatId);
+
+//     if(error) {
+//         console.error('[Test] Error al correr el test.');
+//         throw new Error(error.message);
+//     }
+
+//     if(data.length > 0) {
+//         console.warn('❌ [Test] Pudimos leer los mensajes de una conversación de la no somos parte.');
+//     } else {
+//         console.log('✅ [Test] No pudimos leer los mensajes de una conversación de la no somos parte.');
+//     }
+// }
+
+// testCantReadAPrivateChatMessagesIfImNotPartOfIt();
