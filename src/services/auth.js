@@ -1,3 +1,4 @@
+import { uploadFile } from "./storage";
 import { supabase } from "./supabase";
 import { createUserProfile, fetchUserProfileById, updateUserProfile } from "./user-profiles";
 
@@ -52,6 +53,7 @@ let user = {
     display_name: null,
     bio: null,
     career: null,
+    photo_url: null,
 }
 let observers = [];
 
@@ -160,6 +162,7 @@ export async function logout() {
         display_name: null,
         bio: null,
         career: null,
+        photo_url: null,
     });
 }
 
@@ -174,6 +177,33 @@ export async function updateAuthUserProfile(data) {
         setUserState(data);
     } catch (error) {
         throw new Error(error.message || error);
+    }
+}
+
+/**
+ * 
+ * @param {File|Blob} file 
+ */
+export async function updateAuthUserAvatar(file) {
+    try {
+        // Generamos un nombre para la imagen.
+        // Supabase nos recomienda crear siempre un nombre único para cada archivo.
+        // El formato del nombre del archivo que vamos a usar:
+        //  '{userId}/{uuid}.{extension}'
+        // crypto.randomUUID() es la función de JS que genera un UUID.
+        const photo_url = `${user.id}/${crypto.randomUUID()}.jpg`; // TODO: Contemplar otras extensiones.
+
+        await uploadFile(photo_url, file);
+
+        // Actualizamos el perfil del usuario.
+        await updateUserProfile(user.id, { photo_url });
+
+        // TODO: Eliminar la foto anterior.
+
+        setUserState({ photo_url });
+    } catch (error) {
+        console.error('[auth.js updateAuthUserAvatar] Error al cambiar la foto de perfil. ', error);
+        throw new Error(error.message);
     }
 }
 

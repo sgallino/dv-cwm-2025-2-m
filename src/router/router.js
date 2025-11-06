@@ -6,6 +6,7 @@ import Login from "../pages/Login.vue";
 import Register from "../pages/Register.vue";
 import MyProfile from "../pages/MyProfile.vue";
 import MyProfileEdit from "../pages/MyProfileEdit.vue";
+import MyProfileEditAvatar from "../pages/MyProfileEditAvatar.vue";
 import UserProfile from "../pages/UserProfile.vue";
 import PrivateChat from "../pages/PrivateChat.vue";
 
@@ -18,13 +19,14 @@ import PrivateChat from "../pages/PrivateChat.vue";
 //  podamos agregar cualquier data arbitraria a la ruta.
 const routes = [
     { path: '/',                        component: Home, },
-    { path: '/ingresar',                component: Login,           meta: { requiresGuest: true, }, },
-    { path: '/crear-cuenta',            component: Register,        meta: { requiresGuest: true, }, },
-    { path: '/chat',                    component: GlobalChat,      meta: { requiresAuth: true, }, },
-    { path: '/mi-perfil',               component: MyProfile,       meta: { requiresAuth: true, }, },
-    { path: '/mi-perfil/editar',        component: MyProfileEdit,   meta: { requiresAuth: true, }, },
-    { path: '/usuario/:id',             component: UserProfile,     meta: { requiresAuth: true, }, },
-    { path: '/usuario/:id/chat',        component: PrivateChat,     meta: { requiresAuth: true, }, },
+    { path: '/ingresar',                component: Login,               meta: { requiresGuest: true, }, },
+    { path: '/crear-cuenta',            component: Register,            meta: { requiresGuest: true, }, },
+    { path: '/chat',                    component: GlobalChat,          meta: { requiresAuth: true, }, },
+    { path: '/mi-perfil',               component: MyProfile,           meta: { requiresAuth: true, }, },
+    { path: '/mi-perfil/editar',        component: MyProfileEdit,       meta: { requiresAuth: true, }, },
+    { path: '/mi-perfil/editar/foto',   component: MyProfileEditAvatar, meta: { requiresAuth: true, }, },
+    { path: '/usuario/:id',             component: UserProfile,         meta: { requiresAuth: true, }, },
+    { path: '/usuario/:id/chat',        component: PrivateChat,         meta: { requiresAuth: true, }, },
 ];
 
 // El router se crea con createRouter que recibe un objeto de 2
