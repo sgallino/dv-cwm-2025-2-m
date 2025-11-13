@@ -22,6 +22,23 @@ export async function uploadFile(filename, file, bucket = 'avatars') {
  * 
  * @param {string} filename 
  * @param {string} bucket 
+ */
+export async function deleteFile(filename, bucket = 'avatars') {
+    const { data, error } = await supabase
+        .storage
+        .from(bucket)
+        .remove(filename);
+    
+    if(error) {
+        console.error('[storage.js deleteFile] Error al eliminar el archivo: ', error);
+        throw new Error(error.message);
+    }
+}
+
+/**
+ * 
+ * @param {string} filename 
+ * @param {string} bucket 
  * @returns {string}
  */
 export function getFileURL(filename, bucket = 'avatars') {

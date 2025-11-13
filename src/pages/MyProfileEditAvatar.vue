@@ -26,7 +26,7 @@ export default {
 
                 await updateAuthUserAvatar(this.imageData.file);
             } catch (error) {
-                // TODO...
+                throw error;
             }
             this.loading = false;
         },

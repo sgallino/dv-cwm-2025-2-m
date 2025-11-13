@@ -1,4 +1,4 @@
-import { uploadFile } from "./storage";
+import { deleteFile, uploadFile } from "./storage";
 import { supabase } from "./supabase";
 import { createUserProfile, fetchUserProfileById, updateUserProfile } from "./user-profiles";
 
@@ -56,6 +56,13 @@ let user = {
     photo_url: null,
 }
 let observers = [];
+
+// Levantamos la data que tenemos en localStorage para marcar al usuario como autenticado, si es que así figura.
+// Esto *no* reemplaza la verificación que hacemos después con Supabase y el getUser(), pero nos ayuda a evitar
+// en principio que nos saque siempre al login después de un refresh.
+if(localStorage.getItem('user') !== null) {
+    user = JSON.parse(localStorage.getItem('user'));
+}
 
 loadCurrentAuthUserData();
 
@@ -198,7 +205,8 @@ export async function updateAuthUserAvatar(file) {
         // Actualizamos el perfil del usuario.
         await updateUserProfile(user.id, { photo_url });
 
-        // TODO: Eliminar la foto anterior.
+        // Eliminamos la foto anterior, antes de actualizar el valor en los datos del usuario.
+        deleteFile(user.photo_url);
 
         setUserState({ photo_url });
     } catch (error) {
@@ -257,4 +265,10 @@ function setUserState(data) {
         ...data,
     }
     notifyAll();
+
+    if(user.id !== null) {
+        localStorage.setItem('user', JSON.stringify(data));
+    } else {
+        localStorage.removeItem('user');
+    }
 }
