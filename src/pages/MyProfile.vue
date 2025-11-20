@@ -1,45 +1,10 @@
-<script>
+<script setup>
 import AppH1 from '../components/AppH1.vue';
-import { subscribeToAuthStateChanges } from '../services/auth';
 import { getFileURL } from '../services/storage';
+import useAuthUserState from '../composables/useAuthUserState';
+// TODO: Repasar computed properties
 
-let unsubscribeFromAuth = () => {} // La función es un placeholder.
-
-export default {
-    name: 'MyProfile',
-    components: { AppH1, },
-    data() {
-        return {
-            user: {
-                id: null,
-                email: null,
-                display_name: null,
-                bio: null,
-                career: null,
-                photo_url: null,
-            },
-        }
-    },
-    methods: {
-        generateFullURL(filename) {
-            return getFileURL(filename);
-        }
-    },
-    // TODO: Repasar computed properties
-    // computed: {
-    //     photoFullURL() {
-    //         return this.user.photo_url ? getFileURL(this.user.photo_url) : null;
-    //     }
-    // },
-    mounted() {
-        // Capturamos la función para cancelar la suscripción.
-        unsubscribeFromAuth = subscribeToAuthStateChanges(userState => this.user = userState);
-    },
-    unmounted() {
-        // Invocamos la función y cancelamos la suscripción.
-        unsubscribeFromAuth();
-    }
-}
+const user = useAuthUserState();
 </script>
 
 <template>
@@ -53,7 +18,7 @@ export default {
         <div class="w-1/4">
             <img
                 v-if="user.photo_url !== null"
-                :src="generateFullURL(user.photo_url)"
+                :src="getFileURL(user.photo_url)"
                 alt=""
             >
             <span v-else>Sin foto de perfil</span>

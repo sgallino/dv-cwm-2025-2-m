@@ -1,13 +1,13 @@
-<script>
+<script setup>
 import AppFooter from './components/AppFooter.vue';
 import AppNavbar from './components/AppNavbar.vue';
 
-export default {
-    name: 'App',
-    // La propiedad "components" lleva un objeto con los componentes que queremos
-    // usar dentro de éste.
-    components: { AppNavbar, AppFooter },
-}
+/*
+El atributo setup de <script> nos permite declarar que este componente usa la API de Composition.
+Esto automáticamente implica:
+- No podemos hacer un export default. Lo va a agregar el compilador de Vue.
+- Por consiguiente, no necesitamos aclarar ni el nombre del componente ni declarar los componentes que usamos.
+*/
 </script>
 
 <template>

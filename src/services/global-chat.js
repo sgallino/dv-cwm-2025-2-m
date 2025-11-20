@@ -49,12 +49,15 @@ export async function fetchLastGlobalChatMessages() {
  * @returns {() => void} Función para cancelar la suscripción.
  */
 export function subscribeToNewGlobalChatMessages(callback) {
+    console.log("Suscrito al evento");
+
     // Actualización en tiempo real de los nuevos mensajes.
     // Vamos a usar la API de Postgres Changes que Supabase Realtime ofrece.
     // Primero, creamos el canal.
     // Lo importante es el nombre del canal, que sería su id. Pueden poner cualquier
     // string excepto "realtime".
     const chatChannel = supabase.channel('global_chat_messages');
+    console.log("Suscripción al chat: ", chatChannel.state);
 
     // Configuramos los eventos que queremos escuchar.
     // Los eventos se registran con el método "on".
@@ -72,7 +75,7 @@ export function subscribeToNewGlobalChatMessages(callback) {
             schema: 'public',
         },
         payload => {
-            // console.log('Recibimos un nuevo mensaje: ', payload);
+            console.log('Recibimos un nuevo mensaje: ', payload);
             callback(payload.new);
         }
     );
@@ -80,8 +83,10 @@ export function subscribeToNewGlobalChatMessages(callback) {
     // Pedimos "suscribirnos" al canal. Hasta acá, configuramos el canal, pero es recién
     // cuando nos suscribimos que empezamos a recibir la data.
     // Es importante tener en mente que no podemos suscribirnos a un canal si ya estamos suscritos.
-    chatChannel.subscribe();
-    // console.log("Suscripción al chat registrada.");
+    chatChannel.subscribe(status => {
+        console.log("Suscripción al chat: ", status);
+
+    });
     
     // Siempre que nos suscribimos a algo, tenemos que ofrecer algún mecanismo para cancelar esa suscripción.
     // La forma más simple de ofrecer esto es haciendo que la función que suscribe el observer retorne una

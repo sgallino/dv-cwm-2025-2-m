@@ -1,41 +1,42 @@
-<script>
+<script setup>
+import { onMounted, ref } from 'vue';
 import AppH1 from '../components/AppH1.vue';
 import { getFileURL } from '../services/storage';
 import { fetchUserProfileById } from '../services/user-profiles';
+import { useRoute } from 'vue-router';
 
-export default {
-    name: 'UserProfile',
-    components: { AppH1, },
-    data() {
-        return {
-            user: {
-                id: null,
-                email: null,
-                display_name: null,
-                bio: null,
-                career: null,
-                photo_url: null,
-            },
-            loading: false,
-        }
-    },
-    methods: {
-        generateFullURL(filename) {
-            return getFileURL(filename);
-        }
-    },
-    async mounted() {
+const route = useRoute();
+const { user, loading } = useUserProfile(route.params.id);
+
+/*
+Se considera en general una buena práctica que cualquier dependencia externa del composable (cualquier valor que
+el composable necesita usar pero no define él mismo) se le provea como argumento.
+*/
+function useUserProfile(id) {
+    const loading = ref(false);
+    const user = ref({
+        id: null,
+        email: null,
+        display_name: null,
+        bio: null,
+        career: null,
+        photo_url: null,
+    });
+
+    onMounted(async () => {
         try {
-            this.loading = true;
+            loading.value = true;
 
-            // Para acceder a los datos de la ruta, tenemos el objeto this.$route.
-            // Entre sus datos, tenemos "params" que nos da acceso a los parámetros
-            // de ruta.
-            this.user = await fetchUserProfileById(this.$route.params.id);
+            user.value = await fetchUserProfileById(id);
         } catch (error) {
             // TODO...
         }
-        this.loading = false;
+        loading.value = false;
+    });
+
+    return {
+        loading,
+        user,
     }
 }
 </script>
@@ -47,7 +48,7 @@ export default {
         <div class="w-1/4">
             <img
                 v-if="user.photo_url !== null"
-                :src="generateFullURL(user.photo_url)"
+                :src="getFileURL(user.photo_url)"
                 alt=""
             >
             <span v-else>Sin foto de perfil</span>
